@@ -2647,7 +2647,7 @@ Wire Wire Line
 	16150 5800 16550 5800
 Wire Wire Line
 	16150 5900 16550 5900
-Text Label 16150 5800 0    50   ~ 0
+Text Label 16150 2900 0    50   ~ 0
 CLKI
 Wire Wire Line
 	21800 3700 21400 3700
@@ -8158,11 +8158,11 @@ Text Label 16150 3800 0    50   ~ 0
 LED4
 Text Label 16150 4400 0    50   ~ 0
 SW1
-Text Label 16150 5600 0    50   ~ 0
+Text Label 16150 3000 0    50   ~ 0
 SW2
-Text Label 16150 5700 0    50   ~ 0
+Text Label 16150 3100 0    50   ~ 0
 SW3
-Text Label 16150 5900 0    50   ~ 0
+Text Label 16150 3200 0    50   ~ 0
 SW4
 Text Notes 5350 15400 2    50   ~ 0
 Place close to connector for junction temperature compensation
