@@ -1,4 +1,4 @@
-78480077027946
+82830499736168
 VC
 2.5mm-screw-Hole
 
@@ -189,6 +189,13 @@ nichicon_radial_body10x16-5mm-pitch
 2
 2
 VC
+Omron-XF2M-3015-1A
+30 Position FPC Connector Contacts, Top and Bottom 0.020" (0.50mm) Surface Mount, Right Angle
+fpc
+0
+32
+31
+VC
 onsemi-sod123fl
 
 
@@ -202,6 +209,13 @@ PANASONIC-EVQQ2B03W
 0
 4
 4
+VC
+phoenix_contact-therminal_block-12pos_PTSA1.5_12-3.5-F-1985069
+
+
+0
+12
+12
 VC
 Q1-out-A
 
@@ -328,6 +342,13 @@ VC-RES-0603-1608metric
 0
 2
 2
+VC
+VC-SOICbite-vcpinout
+
+
+0
+8
+8
 VC
 VCSM-m1
 
