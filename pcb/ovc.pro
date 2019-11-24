@@ -1,4 +1,4 @@
-update=10/29/19 17:33:59
+update=11/24/19 22:13:01
 version=1
 last_client=kicad
 [general]
@@ -239,7 +239,7 @@ dPairViaGap=0.25
 [schematic_editor]
 version=1
 PageLayoutDescrFile=
-PlotDirectoryName=
+PlotDirectoryName=Pics and plots/
 SubpartIdSeparator=0
 SubpartFirstId=65
 NetFmtName=
