@@ -10565,4 +10565,6 @@ Text Label 1350 3050 2    50   ~ 0
 SSRD-1
 Text Label 1350 2950 2    50   ~ 0
 SSRD-2
+Text Notes 14500 5750 0    50   ~ 0
+change to  24MHz version
 $EndSCHEMATC
