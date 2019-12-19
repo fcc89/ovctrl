@@ -1,5 +1,6 @@
-build/rtos/production/_ext/1360937237/main.o:  \
-../src/main.c  \
+build/rtos/production/_ext/1360937237/analogFrontEnd.o:  \
+ ../src/analogFrontEnd.c  \
+../src/analogFrontEnd.h  \
  ../src/config/rtos/definitions.h  \
  ../src/config/rtos/peripheral/clk/plib_clk.h  \
  ../src/config/rtos/peripheral/gpio/plib_gpio.h  \
@@ -61,5 +62,4 @@ build/rtos/production/_ext/1360937237/main.o:  \
  ../src/config/rtos/system/dma/sys_dma.h  \
 ../src/config/rtos/osal/osal.h  \
  ../src/app.h  \
-../src/analogFrontEnd.h  \
 ../src/wirelessCom.h 

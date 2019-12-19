@@ -1,6 +1,7 @@
-build/rtos/production/_ext/1360937237/main.o:  \
-../src/main.c  \
- ../src/config/rtos/definitions.h  \
+build/rtos/production/_ext/1360937237/wirelessCom.o:  \
+../src/wirelessCom.c  \
+ ../src/wirelessCom.h  \
+../src/config/rtos/definitions.h  \
  ../src/config/rtos/peripheral/clk/plib_clk.h  \
  ../src/config/rtos/peripheral/gpio/plib_gpio.h  \
  ../src/packs/PIC32MZ1024EFK100_DFP/device.h  \
@@ -61,5 +62,4 @@ build/rtos/production/_ext/1360937237/main.o:  \
  ../src/config/rtos/system/dma/sys_dma.h  \
 ../src/config/rtos/osal/osal.h  \
  ../src/app.h  \
-../src/analogFrontEnd.h  \
-../src/wirelessCom.h 
+../src/analogFrontEnd.h 

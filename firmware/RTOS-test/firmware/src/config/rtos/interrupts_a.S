@@ -106,6 +106,24 @@ IntVectorUART1_TX_Handler:
     nop
     portRESTORE_CONTEXT
     .end   IntVectorUART1_TX_Handler
+    .extern  CHANGE_NOTICE_E_Handler
+
+    .section   .vector_122,code, keep
+    .equ     __vector_dispatch_122, IntVectorCHANGE_NOTICE_E_Handler
+    .global  __vector_dispatch_122
+    .set     nomicromips
+    .set     noreorder
+    .set     nomips16
+    .set     noat
+    .ent  IntVectorCHANGE_NOTICE_E_Handler
+
+IntVectorCHANGE_NOTICE_E_Handler:
+    portSAVE_CONTEXT
+    la    s6,  CHANGE_NOTICE_E_Handler
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end   IntVectorCHANGE_NOTICE_E_Handler
     .extern  SPI2_RX_Handler
 
     .section   .vector_143,code, keep
