@@ -118,6 +118,7 @@
       <itemPath>../src/wirelessCom.h</itemPath>
       <itemPath>../src/PIDcontroller.h</itemPath>
       <itemPath>../src/app.h</itemPath>
+      <itemPath>../src/processControl.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -214,6 +215,7 @@
       <itemPath>../src/PIDcontroller.c</itemPath>
       <itemPath>../src/main.c</itemPath>
       <itemPath>../src/app.c</itemPath>
+      <itemPath>../src/processControl.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

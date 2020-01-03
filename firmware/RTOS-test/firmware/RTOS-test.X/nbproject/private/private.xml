@@ -4,10 +4,9 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/F:/Francisco/Proyectos/2019/jukumari/OvenController/ovctrl/firmware/RTOS-test/firmware/src/main.c</file>
-            <file>file:/F:/Francisco/Proyectos/2019/jukumari/OvenController/ovctrl/firmware/RTOS-test/firmware/src/analogFrontEnd.c</file>
-            <file>file:/F:/Francisco/Proyectos/2019/jukumari/OvenController/ovctrl/firmware/RTOS-test/firmware/src/wirelessCom.h</file>
+            <file>file:/F:/Francisco/Proyectos/2019/jukumari/OvenController/ovctrl/firmware/RTOS-test/firmware/src/processControl.c</file>
             <file>file:/F:/Francisco/Proyectos/2019/jukumari/OvenController/ovctrl/firmware/RTOS-test/firmware/src/wirelessCom.c</file>
-            <file>file:/F:/Francisco/Proyectos/2019/jukumari/OvenController/ovctrl/firmware/RTOS-test/firmware/src/analogFrontEnd.h</file>
+            <file>file:/F:/Francisco/Proyectos/2019/jukumari/OvenController/ovctrl/firmware/RTOS-test/firmware/src/processControl.h</file>
         </group>
     </open-files>
 </project-private>

@@ -95,16 +95,16 @@ static void remoteSendIoStatus(io_report_t ior){
 //Pauses automatic send and waits for confirmation
 static void autoSendPause(void){
     bool b=true;
-    BaseType_t rs = xQueueSendToBack(xBinarySemaphoreWaitForAutosendPause,&b,0);
-    BaseType_t r = xSemaphoreTake(xBinarySemaphoreTRM2dReady, pdMS_TO_TICKS(100));
+    BaseType_t rs = xQueueSendToBack(xQueueAutoPCupdateEnable,&b,0);
+    BaseType_t r = xSemaphoreTake(xBinarySemaphoreWaitForAutosendPause, pdMS_TO_TICKS(100));
     //TODO add error handling
     
 }
 
 static void autoSendUnpause(void){
     bool b=false;
-    BaseType_t rs = xQueueSendToBack(xBinarySemaphoreWaitForAutosendPause,&b,0);
-    BaseType_t r = xSemaphoreTake(xBinarySemaphoreTRM2dReady, pdMS_TO_TICKS(100));
+    BaseType_t rs = xQueueSendToBack(xQueueAutoPCupdateEnable,&b,0);
+    BaseType_t r = xSemaphoreTake(xBinarySemaphoreWaitForAutosendPause, pdMS_TO_TICKS(100));
     //TODO add error handling
 }
 
@@ -117,21 +117,20 @@ static bool commandReceived(unsigned char* b){
     unsigned char param = *b;
     switch (command){
         case REMOTE_COMMAND_HADNSHAKE:
-            autoSendPause();
+            autoSendPause(); 
             remoteHandShakeRespond(param);
-            autoSendUnpause();
             break;
         case REMOTE_COMMAND_GETSTATE:
-            
+            autoSendUnpause();
             break;
         case REMOTE_COMMAND_REFLOWSTATE:
-            
+            //TODO respond with reflow process status
             break;
         case REMOTE_COMMAND_REFLOWSTART:
-            
+            //TODO start reflow process
             break;
         case REMOTE_COMMAND_REFLOWEND:
-            
+            //TODO abort reflow process
             break;
         default:
             return false;
@@ -229,16 +228,15 @@ void taskWireless(void *pvParam){
         }
 
         if(bWireless_cnctd){
-            //DRV_USART_ReadBuffer(handle_uWifi,rcvBuff,1);
-            analog_data_t analogToPrint;
-            
-            BaseType_t statAnRec = xQueueReceive(xQueueAnalogOutput,&analogToPrint,pdMS_TO_TICKS(1500));
-            
-            if(statAnRec==pdPASS){
-                sprintf(sndBuff,"Temperatura: %f\r\n",(double)analogToPrint.fTC_2);
-            }else if(statAnRec==errQUEUE_EMPTY){
-                sprintf(sndBuff,"Sin Datos!!!\r\n");
-            }
+//            //DRV_USART_ReadBuffer(handle_uWifi,rcvBuff,1);
+//            analog_data_t analogToPrint;
+//            BaseType_t statAnRec = xQueueReceive(xQueueAnalogOutput,&analogToPrint,pdMS_TO_TICKS(1500));
+//            
+//            if(statAnRec==pdPASS){
+//                sprintf(sndBuff,"Temperatura: %f\r\n",(double)analogToPrint.fTC_2);
+//            }else if(statAnRec==errQUEUE_EMPTY){
+//                sprintf(sndBuff,"Sin Datos!!!\r\n");
+//            }
             
             
             DRV_USART_WriteBuffer(handle_uWifi,sndBuff,strlen(sndBuff));
@@ -274,5 +272,6 @@ void taskPeriodicReport(void *pvParam){
             xSemaphoreGive(xBinarySemaphoreWaitForAutosendPause);
         }
     }
-    
+    vTaskDelete(NULL);
 }
+ 
