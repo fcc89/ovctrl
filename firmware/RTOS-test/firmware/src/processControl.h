@@ -17,7 +17,7 @@
 
 #ifndef _PROCESS_CONTROL_H    /* Guard against multiple inclusion */
 #define _PROCESS_CONTROL_H
-
+#include "definitions.h" 
 
 /* ************************************************************************** */
 /* ************************************************************************** */
@@ -48,7 +48,14 @@ extern "C" {
         unsigned int timeLimit; //put 0 for dissable time limit for fixed temperature, ignored for reflow
         //TODO consider to add a time stamp
     } process_cmnd_t;
-
+    typedef struct _pid_cmnd_t{
+        int state;                          //0-->disabled, >0 --> running, <0 -->error
+        float temperature;                         
+    }pid_cmnd_t;
+    
+#define PID_ENABLE                          1
+#define PID_DISABLE                         0
+#define PID_ERROR                           -1
 
 #define PROCESS_CMND_REFLOW_START           1
 #define PROCESS_CMND_REFLOW_PARAM_CHANGE    2
@@ -62,6 +69,14 @@ extern "C" {
 #define PROCESS_STATE_COOLING               4
 #define PROCESS_STATE_ERROR                 5
     
+    extern QueueHandle_t xQueueProcessComands;      //Reception channel for commands
+    extern QueueHandle_t xQueueProcessFeedback;     //returns current process state
+    extern QueueHandle_t xQueuePIDControll;         //Setpoint and state set for PID controller add gains later
+    extern QueueHandle_t xQueuePIDState;            //feedback from PID controller returns state and temperature
+    
+    
+    
+    int pidControllerInit(void);
     void taskPID(void *pvParam);
     void taskProcessControl(void *pvParam);
 

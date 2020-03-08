@@ -1,13 +1,14 @@
 build/rtos/production/_ext/1360937237/processControl.o:  \
  ../src/processControl.c  \
 ../src/processControl.h  \
-../src/wirelessCom.h  \
  ../src/config/rtos/definitions.h  \
  ../src/config/rtos/peripheral/clk/plib_clk.h  \
  ../src/config/rtos/peripheral/gpio/plib_gpio.h  \
  ../src/packs/PIC32MZ1024EFK100_DFP/device.h  \
  ../src/config/rtos/toolchain_specifics.h  \
  ../src/config/rtos/peripheral/evic/plib_evic.h  \
+ ../src/config/rtos/peripheral/ocmp/plib_ocmp5.h  \
+ ../src/config/rtos/peripheral/ocmp/plib_ocmp_common.h  \
  ../src/config/rtos/driver/i2c/drv_i2c.h  \
  ../src/config/rtos/driver/i2c/drv_i2c_definitions.h  \
  ../src/config/rtos/system/system_module.h  \
@@ -49,6 +50,8 @@ build/rtos/production/_ext/1360937237/processControl.o:  \
  ../src/config/rtos/system/dma/sys_dma_mapping.h  \
  ../src/config/rtos/driver/usart/src/drv_usart_local.h  \
  ../src/config/rtos/driver/usart/drv_usart.h  \
+ ../src/config/rtos/peripheral/tmr/plib_tmr2.h  \
+ ../src/config/rtos/peripheral/tmr/plib_tmr_common.h  \
  ../src/config/rtos/peripheral/spi/plib_spi2.h  \
  ../src/config/rtos/peripheral/spi/plib_spi_common.h  \
  ../src/config/rtos/driver/spi/drv_spi.h  \
@@ -63,4 +66,5 @@ build/rtos/production/_ext/1360937237/processControl.o:  \
  ../src/config/rtos/system/dma/sys_dma.h  \
 ../src/config/rtos/osal/osal.h  \
  ../src/app.h  \
+../src/wirelessCom.h  \
 ../src/analogFrontEnd.h 

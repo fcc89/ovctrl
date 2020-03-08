@@ -16,35 +16,27 @@ QueueHandle_t xQueueAnalogOutput;
 SemaphoreHandle_t xBinarySemaphoreTRM2dReady;
 
 
-static void TRM_dataReady_handler(GPIO_PIN pin,uintptr_t context){
+void TRM_dataReady_handler(GPIO_PIN pin,uintptr_t context){
     BaseType_t xHigherPriorityTaskWoken;
+    
     xHigherPriorityTaskWoken = pdFALSE;
-    LED2_Toggle();
+    
     if(TRM_nDRDY_Get()==0){
-        
-        
         xSemaphoreGiveFromISR(xBinarySemaphoreTRM2dReady,&xHigherPriorityTaskWoken);
+        //LED2_Toggle();
     }
+
 }
 
 
 //TODO add error reporting
 //Opens SPI port and write default configuration to Max31856
 static bool Thermocouple2_init(void) {
-    
-    GPIO_PinInterruptCallbackRegister(TRM_nDRDY_PIN,TRM_dataReady_handler,0);
-    GPIO_PinInterruptEnable(TRM_nDRDY_PIN);
-    
-    xBinarySemaphoreTRM2dReady = xSemaphoreCreateBinary();
-    
-    if(xBinarySemaphoreTRM2dReady == NULL){
-        return false; //TODO add error handling and reporting
-    }
-    
+
     if(!bAnalog_SPI_open){
         analog_SPI_handle=DRV_SPI_Open(DRV_SPI_INDEX_0,DRV_IO_INTENT_BLOCKING|DRV_IO_INTENT_READWRITE);
         if(analog_SPI_handle!=DRV_HANDLE_INVALID){
-
+            
             bAnalog_SPI_open = true;
         }else{
             return false;
@@ -54,21 +46,22 @@ static bool Thermocouple2_init(void) {
     unsigned char rcvBuff[10];
     
     TRM_nCS_Clear();
-    sendBuff[0] = MAX31856_CR0_ADDR_WRITE;
-    sendBuff[1] = MAX31856_CR0_VALUE_DEFAULT;
-    sendBuff[2] = MAX31856_CR1_VALUE_DEFAULT;
-    bool a = DRV_SPI_WriteReadTransfer(analog_SPI_handle,sendBuff,3,rcvBuff,3);//usgin write read to ensure read buffer is empty for next operation
+    sendBuff[0] = 0x80;
+    sendBuff[1] = 0b11000001;
+    sendBuff[2] = 0b00110011;
+    DRV_SPI_WriteReadTransfer(analog_SPI_handle,sendBuff,3,rcvBuff,3);//usgin write read to ensure read buffer is empty for next operation
     TRM_nCS_Set();
     vTaskDelay(pdMS_TO_TICKS(10));
     TRM_nCS_Clear();
-    sendBuff[0] = MAX31856_CR0_ADDR_READ;
+    sendBuff[0] = 0;
     bool b = DRV_SPI_WriteReadTransfer(analog_SPI_handle,sendBuff,1,rcvBuff,3);
     TRM_nCS_Set();
-    if((b==true)&&(rcvBuff[1]==MAX31856_CR0_VALUE_DEFAULT)&&(rcvBuff[2]==MAX31856_CR1_VALUE_DEFAULT)){
+    if((b==true)&&(rcvBuff[1]==0b11000001)&&(rcvBuff[2]==0b00110011)){
         bIs_thrm2_init = true;
+        LED2_Set();
     }
-    return false;
-    
+    return true;
+    vTaskDelay(pdMS_TO_TICKS(50));
 }
 
 /*Converts byte array received from Max31856 in to floating point number.
@@ -91,7 +84,7 @@ static float Max31856ByteArrayToFloat(char *cp){
 
 void taskThermocoupleRead(void *pvParam) {
     
-    GPIO_PinInterruptDisable(TRM_nDRDY_PIN);
+    
     
     analog_state.bENIch1 = false;
     analog_state.bENIch2 = false;
@@ -110,42 +103,56 @@ void taskThermocoupleRead(void *pvParam) {
     analog_state.fVch2 = 0;
     
     TRM_nCS_Set();
-    vTaskDelay(pdMS_TO_TICKS(10));
+    vTaskDelay(pdMS_TO_TICKS(50));
     
     
-    char rBuff[128];
+    char rBuff[24];
     char sBuff[8];
-    float temp2 = 0;
 
+
+    
+
+
+    
     while(true){
         
         //TODO add queue for reception of commands eg: reading temperature of internal junction compensation 
         if(!bIs_thrm2_init){//
-            bool b = Thermocouple2_init();
+            Thermocouple2_init();
             //TODO add error handling
         }else{
             
             BaseType_t res = xSemaphoreTake(xBinarySemaphoreTRM2dReady, pdMS_TO_TICKS(300));
             
             if(res==pdPASS){
-                //LED2_Toggle();
-                sBuff[0]=MAX31856_ILTCBH_ADDR_READ;
+                
                 TRM_nCS_Clear();
-                bool r = DRV_SPI_WriteReadTransfer(analog_SPI_handle, sBuff, 1, rBuff, 4);
+                Nop();
+                sBuff[0]=12;
+                bool r = DRV_SPI_WriteReadTransfer(analog_SPI_handle, sBuff, 1, rBuff, 3);
+                Nop();
                 TRM_nCS_Set();
-                
-                
-                
+
                 if(r){
                     analog_state.fTC_2 = Max31856ByteArrayToFloat(rBuff);
-                    
-                    BaseType_t resSend = xQueueSendToBack(xQueueAnalogOutput,&analog_state,0);
+                    xQueueSendToFront(xQueueAnalogOutput,&analog_state,0);
                     //TODO send temperature to PID and wifi controllers
                     
                 }else{
+                    
                     //TODO add error handling
                 }
             }else{
+                if(TRM_nDRDY_Get()==0){//in case the first change is not detected by the interruption
+                    TRM_nCS_Clear();
+                    Nop();   //adding some time for the Max31856 
+                    sBuff[0]=12;
+                    DRV_SPI_WriteReadTransfer(analog_SPI_handle, sBuff, 1, rBuff, 3);
+                    Nop();
+                    TRM_nCS_Set();
+
+                }
+
                 //TODO add read time expired error
             }
             //TODO add queue and logic for reception change of configuration 

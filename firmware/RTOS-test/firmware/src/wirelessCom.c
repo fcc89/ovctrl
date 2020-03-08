@@ -4,17 +4,26 @@
 #include <stdbool.h>
 #include <stdlib.h> 
 #include <string.h>
-#include "definitions.h"  
+#include "definitions.h"
+#include "processControl.h"
 
 SemaphoreHandle_t xBinarySemaphoreWirelessInit;
 SemaphoreHandle_t xBinarySemaphoreWaitForAutosendPause;
 QueueHandle_t xQueueAutoPCupdateEnable;
-QueueHandle_t xQueueAutoPCupdateData;
+QueueHandle_t xQueueDataFrmPID;
+
+bool paused = true;
+bool pause  = true;
 
 DRV_HANDLE handle_uWifi;
 unsigned char lastCommand = 0;
 unsigned char lastParam = 0;
+float bbb;
+io_report_t a;
 
+bool bWaitingForCommand = true;
+
+process_cmnd_t pc_rcvCmnd;
 
 
 //Parses bytes of float in to destination char array starting at index i
@@ -46,20 +55,20 @@ static void remoteCommandSend(unsigned char com, unsigned char par){        //TO
 }
 
 //creates and sends data package for PC maximum 253 bytes of data
-static void remoteDataPackageSend(unsigned char *dBuff, unsigned char l){
-    unsigned char sendBuff[255];
-    unsigned char c;
-    if(l<=233){
-        sendBuff[0] = REMOTE_MESSAGE_START;
-        for(c=1;c<=l;c++){
-            sendBuff[c] = *dBuff;
-            dBuff++;
-        }
-        sendBuff[l+1] = REMOTE_MESSAGE_END;
-        DRV_USART_WriteBuffer(handle_uWifi, sendBuff, l+2);
-    }
-    
-}
+//static void remoteDataPackageSend(unsigned char *dBuff, unsigned char l){
+//    unsigned char sendBuff[255];
+//    unsigned char c;
+//    if(l<=233){
+//        sendBuff[0] = REMOTE_MESSAGE_START;
+//        for(c=1;c<=l;c++){
+//            sendBuff[c] = *dBuff;
+//            dBuff++;
+//        }
+//        sendBuff[l+1] = REMOTE_MESSAGE_END;
+//        DRV_USART_WriteBuffer(handle_uWifi, sendBuff, l+2);
+//    }
+//    
+//}
 
 
 //responds to handshake request by PC with inverted param
@@ -71,13 +80,16 @@ static void remoteHandShakeRespond(unsigned char c){
 //creates and sends data package with analog and digital io status of unit 
 static void remoteSendIoStatus(io_report_t ior){
     unsigned char sB[34];
-    remoteCommandSend(REMOTE_COMMAND_GETSTATE,32);
+    
+    remoteCommandSend(REMOTE_COMMAND_GETSTATE,1);
     vTaskDelay(pdMS_TO_TICKS(200));
     sB[0] = REMOTE_MESSAGE_START;
     sB[33] = REMOTE_MESSAGE_END;
     sB[1] = ior.bRelayOutput;
     sB[2] = ior.bDigitalOut1;
     sB[3] = ior.bDigitalOut2;
+//    ior.fTC_1=34.9;
+//    ior.fTC_2=19.6;
     parseFloatToByteArray(sB, 4, ior.fTC_1);
     sB[8] = ior.bENtc_1;
     parseFloatToByteArray(sB, 9, ior.fTC_2);
@@ -95,16 +107,16 @@ static void remoteSendIoStatus(io_report_t ior){
 //Pauses automatic send and waits for confirmation
 static void autoSendPause(void){
     bool b=true;
-    BaseType_t rs = xQueueSendToBack(xQueueAutoPCupdateEnable,&b,0);
-    BaseType_t r = xSemaphoreTake(xBinarySemaphoreWaitForAutosendPause, pdMS_TO_TICKS(100));
+    xQueueSendToBack(xQueueAutoPCupdateEnable,&b,0);
+    xSemaphoreTake(xBinarySemaphoreWaitForAutosendPause, pdMS_TO_TICKS(100));
     //TODO add error handling
     
 }
 
 static void autoSendUnpause(void){
     bool b=false;
-    BaseType_t rs = xQueueSendToBack(xQueueAutoPCupdateEnable,&b,0);
-    BaseType_t r = xSemaphoreTake(xBinarySemaphoreWaitForAutosendPause, pdMS_TO_TICKS(100));
+    xQueueSendToBack(xQueueAutoPCupdateEnable,&b,0);
+    xSemaphoreTake(xBinarySemaphoreWaitForAutosendPause, pdMS_TO_TICKS(100));
     //TODO add error handling
 }
 
@@ -119,34 +131,41 @@ static bool commandReceived(unsigned char* b){
         case REMOTE_COMMAND_HADNSHAKE:
             autoSendPause(); 
             remoteHandShakeRespond(param);
+            LED2_Set();
             break;
         case REMOTE_COMMAND_GETSTATE:
             autoSendUnpause();
+            
             break;
         case REMOTE_COMMAND_REFLOWSTATE:
             //TODO respond with reflow process status
             break;
         case REMOTE_COMMAND_REFLOWSTART:
+            pc_rcvCmnd.cmnd = PROCESS_CMND_REFLOW_START;
+            xQueueSendToBack(xQueueProcessComands,&pc_rcvCmnd,pdMS_TO_TICKS(15));
             //TODO start reflow process
             break;
         case REMOTE_COMMAND_REFLOWEND:
+            pc_rcvCmnd.cmnd = PROCESS_CMND_STOP;
+            xQueueSendToBack(xQueueProcessComands,&pc_rcvCmnd,pdMS_TO_TICKS(15));
             //TODO abort reflow process
             break;
         default:
             return false;
     }
+    return true;
 }
 
 //Data package processor used to write the proper variable
-static bool dataPackageReceived(unsigned char* b){
-    
-}
+//static bool dataPackageReceived(unsigned char* b){
+//    
+//}
 
 
 
 static bool wifiModuleInit(void){
-    char sndBuff[10];
-    char rcvBuff[200];
+    char sndBuff[100];
+
     sprintf(sndBuff,"AT\r\n");         
         DRV_USART_WriteBuffer(handle_uWifi,sndBuff,strlen(sndBuff));
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -154,7 +173,10 @@ static bool wifiModuleInit(void){
         BaseType_t semBtn;
         semBtn=xSemaphoreTake(xBinarySemaphoreWirelessInit,portMAX_DELAY); //wait until buton is presed
         if(semBtn==pdPASS){
-            sprintf(sndBuff,"AT+CIPSTART=\"TCP\",\"192.168.1.104\",100\r\n");         //ESP module as BT server
+//            sprintf(sndBuff,"AT+CWJAP=\"AyF\",\"77775522\"\r\n");
+//            DRV_USART_WriteBuffer(handle_uWifi,sndBuff,strlen(sndBuff));
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            sprintf(sndBuff,"AT+CIPSTART=\"TCP\",\"192.168.1.104\",1500\r\n");         //ESP module as BT server
             DRV_USART_WriteBuffer(handle_uWifi,sndBuff,strlen(sndBuff));
             vTaskDelay(pdMS_TO_TICKS(1000));
             sprintf(sndBuff,"AT+CIPMODE=1\r\n");         //
@@ -162,7 +184,7 @@ static bool wifiModuleInit(void){
             vTaskDelay(pdMS_TO_TICKS(500));
             sprintf(sndBuff,"AT+CIPSEND\r\n");
             DRV_USART_WriteBuffer(handle_uWifi,sndBuff,strlen(sndBuff));
-            vTaskDelay(pdMS_TO_TICKS(1500));
+            vTaskDelay(pdMS_TO_TICKS(500));
             clearRxBuffer();
             
             return true; //TODO add actual checking of correct connection
@@ -173,6 +195,18 @@ static bool wifiModuleInit(void){
 }
 
 
+int wirelessInit(void){
+    xBinarySemaphoreWirelessInit = xSemaphoreCreateBinary();
+    xBinarySemaphoreWaitForAutosendPause = xSemaphoreCreateBinary();
+    xQueueAutoPCupdateEnable=xQueueCreate(5,sizeof(bool));
+    
+
+    
+    xTaskCreate(taskWireless,"wifi_Man",2048,NULL,3,NULL);
+    xTaskCreate(taskPeriodicReport,"auto_remote_update",1024,NULL,3,NULL);
+    return 1; //TODO add error report
+}
+
 
 void taskWireless(void *pvParam){
     
@@ -180,10 +214,12 @@ void taskWireless(void *pvParam){
     bool bWifi_nBLE=true; //WiFi mode preselected contemplate configuration using pvParam
     bool bWireless_rdy=false;
     bool bWireless_cnctd=false;
-    bool bWTX_nRX=false;//variable to tell event handler which process was running, reception as default state
+
     
-    char sndBuff[50];
-    char rcvBuff[500];
+    
+    
+
+    unsigned char rcvBuff[500];
     
     handle_uWifi=DRV_USART_Open(DRV_USART_INDEX_0, DRV_IO_INTENT_READWRITE);
     if(handle_uWifi==DRV_HANDLE_INVALID){
@@ -195,7 +231,7 @@ void taskWireless(void *pvParam){
     }
     
         
-    DRV_USART_BUFFER_HANDLE sendBufferHandle;
+ 
     
     while(true){
         if(!bIsPortOpen){
@@ -237,40 +273,70 @@ void taskWireless(void *pvParam){
 //            }else if(statAnRec==errQUEUE_EMPTY){
 //                sprintf(sndBuff,"Sin Datos!!!\r\n");
 //            }
+
+//              DRV_USART_WriteBuffer(handle_uWifi,sndBuff,strlen(sndBuff));
+            
+            if(bWaitingForCommand){
+                DRV_USART_ReadBuffer(handle_uWifi,rcvBuff,4);
+                
+                commandReceived(rcvBuff);
+            }else{
+                //ADD reception of data package
+            }
             
             
-            DRV_USART_WriteBuffer(handle_uWifi,sndBuff,strlen(sndBuff));
             
         }
         
-        
+        vTaskDelay(pdMS_TO_TICKS(200));
     }
     vTaskDelete(NULL);
 }
 
 void taskPeriodicReport(void *pvParam){
-    bool paused = true;
-    bool pause  = true;
-    io_report_t rep;
+    paused = true;
+    pause  = true;
+
     
     while(true){
         
-        if(!paused){
-            //TODO send current status of device, PID task will send the data
+        if(paused==false){
+
+            BaseType_t pb = xQueueReceive(xQueueDataFrmPID,&bbb,pdMS_TO_TICKS(500));
             
-            BaseType_t ar = xQueueReceive(xQueueAutoPCupdateData,&rep,pdMS_TO_TICKS(1000));
-            if(ar==pdPASS){
-                 remoteSendIoStatus(rep);
+            if(pb==pdPASS){
+                a.fTC_2=bbb;
+                a.bDigitalOut1=SW3_Get();
+                a.bDigitalOut2=SW4_Get();
+                a.bRelayOutput=false;
+                a.bENtc_2=true;
+                a.bENtc_1=false;
+                a.bENIch1=false;
+                a.bENIch2=false;
+                a.bENrtd=false;
+                a.fTC_1=0;
+                a.fIch1=0;
+                a.fIch2=0;
+                a.fRTD_tmp=0;
+                a.fRTD_res=0;
+                        
+                //a.fTC_2=(float)44.444;
+                remoteSendIoStatus(a);
+                LED1_Toggle();
+                
             }else{
                 //TODO error report
+                
             }
             
         }
-        BaseType_t r = xQueueReceive(xQueueAutoPCupdateEnable,&pause,pdMS_TO_TICKS(5));
+        BaseType_t r = xQueueReceive(xQueueAutoPCupdateEnable,&pause,pdMS_TO_TICKS(20));
         if(r==pdPASS){
             paused = pause;
             xSemaphoreGive(xBinarySemaphoreWaitForAutosendPause);
+            
         }
+        vTaskDelay(pdMS_TO_TICKS(60));
     }
     vTaskDelete(NULL);
 }

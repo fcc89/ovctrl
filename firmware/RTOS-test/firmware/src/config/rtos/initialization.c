@@ -315,9 +315,14 @@ void SYS_Initialize ( void* data )
     CFGCONbits.ECCCON = 3;
 
 
+    OCMP5_Initialize();
+
 	UART1_Initialize();
 
     I2C4_Initialize();
+
+    TMR2_Initialize();
+
 
 	SPI2_Initialize();
 

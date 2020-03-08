@@ -183,6 +183,22 @@
 #define LED2_OutputEnable()      (TRISBCLR = (1<<7))
 #define LED2_InputEnable()       (TRISBSET = (1<<7))
 #define LED2_PIN                  GPIO_PIN_RB7
+/*** Macros for DO_1 pin ***/
+#define DO_1_Set()               (LATASET = (1<<9))
+#define DO_1_Clear()             (LATACLR = (1<<9))
+#define DO_1_Toggle()            (LATAINV= (1<<9))
+#define DO_1_Get()               ((PORTA >> 9) & 0x1)
+#define DO_1_OutputEnable()      (TRISACLR = (1<<9))
+#define DO_1_InputEnable()       (TRISASET = (1<<9))
+#define DO_1_PIN                  GPIO_PIN_RA9
+/*** Macros for DO_2 pin ***/
+#define DO_2_Set()               (LATASET = (1<<10))
+#define DO_2_Clear()             (LATACLR = (1<<10))
+#define DO_2_Toggle()            (LATAINV= (1<<10))
+#define DO_2_Get()               ((PORTA >> 10) & 0x1)
+#define DO_2_OutputEnable()      (TRISACLR = (1<<10))
+#define DO_2_InputEnable()       (TRISASET = (1<<10))
+#define DO_2_PIN                  GPIO_PIN_RA10
 /*** Macros for SW4 pin ***/
 #define SW4_Set()               (LATBSET = (1<<8))
 #define SW4_Clear()             (LATBCLR = (1<<8))

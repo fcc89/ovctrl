@@ -53,9 +53,7 @@
 extern "C" {
 #endif
     typedef struct _io_repor_t {
-        bool    bRelayOutput;   //reflects state of relay output
-        bool    bDigitalOut1;
-        bool    bDigitalOut2;
+
         float   fTC_1;          //temperature thermocouple 1 (read by ADC)
         float   fTC_2;          //temperature thermocouple 2 (read by MAX31856)
         float   fJC_1;          //junction temperature for thermocouple 1 read by TMP112AIDRLT
@@ -66,6 +64,9 @@ extern "C" {
         float   fIch2;          //Current in mA channel 2
         float   fVch1;          //Voltage across shunt channel 1
         float   fVch2;          //Voltage across shunt channel 2
+        bool    bRelayOutput;   //reflects state of relay output
+        bool    bDigitalOut1;
+        bool    bDigitalOut2;
         bool    bENtc_1;        //Is Thermocouple 1 enabled?
         bool    bENtc_2;        //Is thermocouple 2 enabled?
         bool    bENrtd;         //Is RTD enabled
@@ -77,9 +78,11 @@ extern "C" {
     
     extern SemaphoreHandle_t xBinarySemaphoreWirelessInit;
     extern QueueHandle_t xQueueAutoPCupdateEnable;
+    extern QueueHandle_t xQueueDataFrmPID;
     extern SemaphoreHandle_t xBinarySemaphoreWaitForAutosendPause;
-    extern QueueHandle_t xQueueAutoPCupdateData;
     
+    
+    int wirelessInit(void);
     void taskWireless(void *pvParam);
     void taskPeriodicReport(void *pvParam);
 

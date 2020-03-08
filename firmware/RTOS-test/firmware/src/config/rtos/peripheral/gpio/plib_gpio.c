@@ -64,13 +64,13 @@ void GPIO_Initialize ( void )
 {
     /* PORTA Initialization */
     LATA = 0x0; /* Initial Latch Value */
-    TRISACLR = 0x21; /* Direction Control */
-    ANSELACLR = 0x21; /* Digital Mode Enable */
+    TRISACLR = 0x621; /* Direction Control */
+    ANSELACLR = 0x621; /* Digital Mode Enable */
 
     /* PORTB Initialization */
     LATB = 0x0; /* Initial Latch Value */
     TRISBCLR = 0x30c0; /* Direction Control */
-    ANSELBCLR = 0x39d4; /* Digital Mode Enable */
+    ANSELBCLR = 0xb9d4; /* Digital Mode Enable */
 
     /* PORTC Initialization */
     LATC = 0xc; /* Initial Latch Value */
@@ -110,6 +110,7 @@ void GPIO_Initialize ( void )
     /* PPS Output Remapping */
     RPD15R = 1;
     RPC1R = 6;
+    RPB15R = 11;
 
     /* Lock back the system after PPS configuration */
     SYSKEY = 0x00000000;

@@ -75,7 +75,7 @@ extern "C" {
     
     
 
-#define MAX31856_CR0_VALUE_DEFAULT      0b10010001  /*Automatic conversion, convertion time aprox. 100[ms]  
+#define MAX31856_CR0_VALUE_DEFAULT      0b10000001  /*Automatic conversion, convertion time aprox. 100[ms]  
                                                     Open circuit detection <5kOhm,
                                                     Junction compensation sensor enabled,
                                                     Fault report in comparator mode,
@@ -104,9 +104,10 @@ extern "C" {
     } analog_data_t;
     
     extern QueueHandle_t xQueueAnalogOutput;
+    extern SemaphoreHandle_t xBinarySemaphoreTRM2dReady;
 
     void taskThermocoupleRead(void *pvParam);
-    
+    void TRM_dataReady_handler(GPIO_PIN pin,uintptr_t context);
     
     /* Provide C++ Compatibility */
 #ifdef __cplusplus
